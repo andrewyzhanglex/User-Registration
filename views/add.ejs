@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <title>
+      Add an Account!
+    </title>
+    <script
+    src="https://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+    <script src="/assets/account.js"></script>
+  </head>
+  <body>
+    <% include partials/nav.ejs %>
+    <div id = "add-table"> 
+      <form id = 'account-form' method = 'POST'>
+        <input type = "text" name = "username" placeholder = "Username..." required>
+        <input type = "password" name = "password" placeholder = "Password..." required>
+        <input type = "text" name = "email" placeholder = "Email..." required>
+        <button type = "submit"> Add Account </button>
+      </form>
+    </div>
+  </body>
+</html>
