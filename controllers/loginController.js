@@ -2,7 +2,8 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var mongoose = require('mongoose');
 var accountSchema = require('../models/accountSchema');
-mongoose.connect('<addmongodbconnectionlink>', {useUnifiedTopology: true, useNewUrlParser: true});
+var bcrypt = require('bcrypt');
+mongoose.connect('<mongodblink>', {useUnifiedTopology: true, useNewUrlParser: true});
 
 passport.serializeUser(function(user, done) {
   done(null, user._id);
@@ -17,7 +18,11 @@ passport.use(new LocalStrategy(
     accountSchema.findOne({ username: username }, function (err, user) {
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
-      if (user.password != password) { return done(null, false); }
+      bcrypt.compare(password, user.password, function(err, res) {
+        if (res == false ){
+          return done(null, false);
+        }
+      });
       return done(null, user);
     });
   }
@@ -31,7 +36,7 @@ module.exports = function(app) {
     res.render('auth');
   });
   app.get('/success', function(req, res) {
-    res.send("Welcome "+req.query.username+"!!");
+    res.send("Welcome!!");
   });
   app.get('/error', function(req, res) {
     res.send("error logging in");
