@@ -2,7 +2,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var accountSchema = require('../models/accountSchema');
 
-mongoose.connect('mongodb+srv://azhangrwe:atlantic2001@cluster-cbvfo.mongodb.net/test?retryWrites=true&w=majority', {useUnifiedTopology: true, useNewUrlParser: true});
+mongoose.connect('<mongodblink>', {useUnifiedTopology: true, useNewUrlParser: true});
 
 
 //sends this function back.
