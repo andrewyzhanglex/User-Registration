@@ -4,7 +4,7 @@ $(document).ready(function(){
     var account = $(this.serializeArray());
       $.ajax({
         type: 'POST',
-        url: '/add',
+        url: '/signup',
         data: account,
         datatype: JSON,
         success: function(data){
