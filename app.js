@@ -1,7 +1,6 @@
 //main file.
 var express = require('express');
-var accountController = require('./controllers/accountController');
-var loginController = require('./controllers/loginController');
+var userController = require('./controllers/userController');
 
 //get, post, and delete are all express functions.
 var app = express();
@@ -19,5 +18,4 @@ app.listen(3000);
 console.log('Listening to port 3000');
 
 //call accountController
-accountController(app);
-loginController(app);
+userController(app);
