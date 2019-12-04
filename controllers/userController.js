@@ -10,55 +10,69 @@ mongoose.connect('mongodblink', {useUnifiedTopology: true, useNewUrlParser: true
 passport.serializeUser(function(user, done) {
   done(null, user._id);
 });
+
 passport.deserializeUser(function(id, done) {
   accountSchema.findById(id, function(err, user) {
     done(err, user);
   });
 });
+
 passport.use(new LocalStrategy(
   function(username, password, done) {
     accountSchema.findOne({ username: username }, function (err, user) {
       if (err) { return done(err); }
-      if (!user) { return done(null, false); }
+      if (!user) { return done(null, false, { message: 'Incorrect username'}); }
       if (bcrypt.compareSync(password, user.password)) {
         //flash correct password or something.
-        return done(null, user);
+        req.session.user = username;
+        return done(null, user, {message: 'Success'});
       } else {
-        return done(null, false);
+        return done(null, false, {message: 'Incorrect password'});
       }
     });
   }
 ));
 
+var sessionChecker = function(req, res, next) {
+  if (req.session.user) {
+    res.redirect('/');
+  } else {
+    next();
+  }
+}
+
 module.exports = function(app) {
   app.use(passport.initialize());
   app.use(passport.session());
-
   app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: false,
-    cookie: 
-      { 
-        secure: true,
-        maxAge: 3600000,
-      }
   }));
-  //authentication portion.
+
   app.get('/', function(req, res) {
+    if (!req.session.user) {
+      res.redirect('/login');
+    } else { 
+      res.render('userprofile');
+    }
+  })
+
+  app.post('/', function(req , res) {
+  });
+
+  //authentication portion.
+  app.get('/login', sessionChecker, function(req, res) {
     res.render('auth');
   });
 
-  app.post('/', passport.authenticate('local', {
-    //add success message
-    successRedirect: '/userprofile',
-    //add message
-    failureRedirect: '/',
-  }));
+  app.post('/login', passport.authenticate('local', {successRedirect: '/', failureRedirect: '/login'}));
+
   //add account page
-  app.get('/signup', function(req, res) {
+  app.get('/signup', sessionChecker, function(req, res) {
     res.render('add');
   });
+
   app.post('/signup', function(req, res) {
     bcrypt.hash(req.body.password, 10, function(err, hash) {
       if (err) throw err;
@@ -69,12 +83,18 @@ module.exports = function(app) {
           res.redirect('/signup');
         } else {
           //message flash
-          res.redirect('/userprofile');
+          req.session.user = req.body.username;
+          res.redirect('/');
         }
       });
     });
   });
-  app.get('/userprofile', function(req, res) {
-    res.render('userprofile');
+
+  app.get('/logout', function(req, res) {
+    req.session.destroy(function(err) {
+      if (err) throw err;
+    })
+    res.redirect('/login');
   });
+
 }

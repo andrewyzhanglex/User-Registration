@@ -1,5 +1,4 @@
 $(document).ready(function(){
-
   $('#account-form').on('submit', function(){
     var account = $(this.serializeArray());
       $.ajax({
@@ -12,8 +11,6 @@ $(document).ready(function(){
           location.reload();
         }
       });
-
       return false;
-
   });
 });
