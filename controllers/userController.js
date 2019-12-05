@@ -7,32 +7,6 @@ var session = require('express-session');
 
 mongoose.connect('mongodblink', {useUnifiedTopology: true, useNewUrlParser: true});
 
-passport.serializeUser(function(user, done) {
-  done(null, user._id);
-});
-
-passport.deserializeUser(function(id, done) {
-  accountSchema.findById(id, function(err, user) {
-    done(err, user);
-  });
-});
-
-passport.use(new LocalStrategy(
-  function(username, password, done) {
-    accountSchema.findOne({ username: username }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) { return done(null, false, { message: 'Incorrect username'}); }
-      if (bcrypt.compareSync(password, user.password)) {
-        //flash correct password or something.
-        req.session.user = username;
-        return done(null, user, {message: 'Success'});
-      } else {
-        return done(null, false, {message: 'Incorrect password'});
-      }
-    });
-  }
-));
-
 var sessionChecker = function(req, res, next) {
   if (req.session.user) {
     res.redirect('/');
@@ -42,8 +16,6 @@ var sessionChecker = function(req, res, next) {
 }
 
 module.exports = function(app) {
-  app.use(passport.initialize());
-  app.use(passport.session());
   app.use(session({
     secret: 'secret',
     resave: false,
@@ -51,12 +23,12 @@ module.exports = function(app) {
   }));
 
   app.get('/', function(req, res) {
-    if (!req.session.user) {
-      res.redirect('/login');
-    } else { 
+    if (req.session.user) {
       res.render('userprofile');
+    } else { 
+      res.redirect('/login');
     }
-  })
+  });
 
   app.post('/', function(req , res) {
   });
@@ -66,7 +38,19 @@ module.exports = function(app) {
     res.render('auth');
   });
 
-  app.post('/login', passport.authenticate('local', {successRedirect: '/', failureRedirect: '/login'}));
+  app.post('/login', function(req, res) {
+    var pass = req.body.password;
+    accountSchema.findOne({username: req.body.username}, function(err, user) {
+      if (err) throw err;
+      if (!user) { 
+        res.redirect('/login');
+      } 
+      if (bcrypt.compareSync(pass, user.password)) {
+        req.session.user = req.body.username;
+      } 
+        res.redirect('/login')
+    });
+  });
 
   //add account page
   app.get('/signup', sessionChecker, function(req, res) {
